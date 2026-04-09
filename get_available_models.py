@@ -1,5 +1,6 @@
 # סקריפט לבדיקת הרשאות בפועל לכל המודלים ב-Google AI Studio
-# הקוד לא רק מציג את הרשימה, אלא שולח בקשה לכל מודל כדי לוודא גישה אמיתית.
+# הקוד לא רק מציג את הרשימה, אלא מפעיל את כלי ה-Search Grounding
+# כדי לראות למי יש גישה פתוחה לאינטרנט בחשבון שלך.
 
 import sys
 import subprocess
@@ -18,16 +19,18 @@ def install_requirements():
 install_requirements()
 
 from google import genai
+# ייבוא האובייקטים הנדרשים להפעלת כלים (Tools)
+from google.genai import types
 
 # ==========================================
 # 2. משיכת ה-API Key מתוך הסודות (Secrets) של GitHub
 API_KEY = os.environ.get("GEMINI_API_KEY")
 # ==========================================
 
-def test_my_models():
+def test_my_models_with_tools():
     """
-    מתחבר ל-API, שולף את הרשימה, ומנסה לשלוח "Test" לכל מודל
-    כדי לראות למי מהם יש לך באמת גישה חינמית/פתוחה.
+    מתחבר ל-API, שולף את הרשימה, ומנסה לשלוח שאלה עדכנית לכל מודל
+    *תוך הפעלת כלי החיפוש (Google Search)*, כדי לגלות איזה מודל נתמך במלואו.
     """
     if not API_KEY:
         print("❌ שגיאה: לא נמצא מפתח API. יש לוודא שהסוד GEMINI_API_KEY מוגדר ב-GitHub.")
@@ -39,10 +42,10 @@ def test_my_models():
         client = genai.Client(api_key=API_KEY)
         models = client.models.list()
         
-        print("📥 שולף את הרשימה ומתחיל סבב בדיקות אקטיבי לכל מודל (זה ייקח כמה רגעים)...\n")
+        print("📥 שולף את הרשימה ומתחיל סבב בדיקות עם כלי החיפוש (Search Grounding)...\n")
         
-        print(f"{'Model Code Name':<35} | {'Actual Access Status':<30}")
-        print("-" * 65)
+        print(f"{'Model Code Name':<35} | {'Actual Access Status (with Search)':<40}")
+        print("-" * 78)
         
         working_models = []
         
@@ -52,16 +55,19 @@ def test_my_models():
             # בדיקה מקדימה: האם המודל מיועד בכלל ליצירת תוכן (טקסט)
             methods = getattr(m, 'supported_generation_methods', [])
             if methods and 'generateContent' not in methods:
-                # מדלג על מודלים של חיפוש וקטורי/Embeddings שלא נועדו לשיחה
                 continue
                 
             try:
-                # ניסיון אמיתי לשלוח בקשה למודל
+                # הדרך להפעיל את הכלים בספרייה החדשה
                 response = client.models.generate_content(
                     model=clean_name,
-                    contents="Hi, this is an automated access test. Reply 'OK'."
+                    contents="What is the current main news headline? Reply in 3 words.",
+                    config=types.GenerateContentConfig(
+                        # הפעלת כלי החיפוש של גוגל!
+                        tools=[{"google_search": {}}]
+                    )
                 )
-                status = "✅ פתוח ועובד!"
+                status = "✅ פתוח ועובד (כולל גישה לרשת)!"
                 working_models.append(clean_name)
                 
             except Exception as e:
@@ -73,21 +79,22 @@ def test_my_models():
                     status = "⚠️ חריגת מכסה / עומס (429)"
                 elif "404" in error_str or "not found" in error_str:
                     status = "❌ לא קיים או הוסר (404)"
-                elif "not supported" in error_str:
-                    status = "❌ לא תומך בטקסט"
+                elif "not supported" in error_str or "tool" in error_str:
+                    # כאן אנחנו תופסים מודלים שפתוחים לטקסט אבל חסומים לחיפוש
+                    status = "❌ הכלי (Search) לא נתמך במודל זה"
                 else:
                     status = "❌ שגיאה (אולי המודל בעדכון)"
 
-            print(f"{clean_name:<35} | {status:<30}")
+            print(f"{clean_name:<35} | {status:<40}")
             
-            # השהייה קלה כדי לא לעבור את מגבלת הבקשות לדקה של API (Rate Limit)
+            # השהייה כדי לא לעבור את מגבלת הבקשות לדקה של API (Rate Limit)
             time.sleep(2)
             
-        print("-" * 65)
-        print(f"📊 סה\"כ מודלי טקסט שנבדקו: {len(working_models)} נמצאו כזמינים ופתוחים עבורך!")
+        print("-" * 78)
+        print(f"📊 סה\"כ מודלים שנבדקו והצליחו לחפש ברשת: {len(working_models)}")
         
         if working_models:
-            print("\n💡 אלו המודלים שאתה יכול להעתיק ולהשתמש בהם בוודאות בקוד ה-OSINT שלך:")
+            print("\n💡 אלו המודלים המומלצים לעבודה עם כלי ה-OSINT (תומכים בחיפוש חופשי):")
             for wm in working_models:
                 print(f"  - {wm}")
         
@@ -96,4 +103,4 @@ def test_my_models():
         print(f"פרטי השגיאה: {e}")
 
 if __name__ == "__main__":
-    test_my_models()
+    test_my_models_with_tools()
