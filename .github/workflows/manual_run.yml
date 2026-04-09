@@ -15,7 +15,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          # עודכן לגרסה 3.11 בהתאם לדרישות החדשות של גוגל
+          python-version: '3.11'
           
       - name: Install dependencies
         # קורא לקובץ ה-requirements כדי להתקין ספריות
