@@ -1,80 +1,68 @@
 # סקריפט לשליפת כל המודלים הזמינים למשתמש ב-Google AI Studio
-# מותאם להרצה מקומית, ב-Colab, או להעלאה ל-GitHub
+# מותאם להרצה ב-GitHub Actions תוך שימוש בסודות (Secrets)
 
 import sys
 import subprocess
+import os
 
-# 1. פונקציה להתקנת הספריות הדרושות אוטומטית (נוח מאוד למשתמשי קצה)
+# 1. פונקציה להתקנת הספריות הדרושות אוטומטית (מותאם לספרייה החדשה)
 def install_requirements():
     try:
-        import google.generativeai
+        import google.genai
     except ImportError:
-        print("מתקין את ספריית google-generativeai...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", "google-generativeai", "-q"])
+        print("מתקין את ספריית google-genai...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", "google-genai", "-q"])
         print("ההתקנה הושלמה!\n")
 
 install_requirements()
 
-import google.generativeai as genai
+from google import genai
 
 # ==========================================
-# 2. הגדרת מפתח ה-API
-# מומלץ: אם אתה מעלה ל-GitHub הציבורי, *אל תשמור* את המפתח בקובץ.
-# במקום זאת, תוכל להשתמש ב- os.environ.get('GEMINI_API_KEY') 
-# אבל לצורך בדיקה פשוטה, שים אותו כאן:
-API_KEY = "הכנס_כאן_את_מפתח_ה_API_שלך"
+# 2. משיכת ה-API Key מתוך הסודות (Secrets) של GitHub
+# הקוד לא מכיל את המפתח עצמו, אלא מבקש אותו מהשרת בזמן ההרצה
+API_KEY = os.environ.get("GEMINI_API_KEY")
 # ==========================================
 
 def fetch_my_models():
     """
     מתחבר ל-API של גוגל ומדפיס טבלה של כל המודלים הזמינים למפתח.
     """
-    if not API_KEY or API_KEY == "הכנס_כאן_את_מפתח_ה_API_שלך":
-        print("❌ שגיאה: לא הוזן מפתח API. נא להזין את המפתח במשתנה API_KEY.")
+    if not API_KEY:
+        print("❌ שגיאה: לא נמצא מפתח API. יש לוודא שהסוד GEMINI_API_KEY מוגדר ב-GitHub.")
         return
 
-    # הגדרת מפתח הגישה
-    genai.configure(api_key=API_KEY)
-    
     print("🔍 מתחבר לשרתי Google AI Studio...")
     print("📥 שולף את רשימת המודלים שפתוחים עבורך...\n")
     
     try:
+        # התחברות עם הספרייה החדשה ומפתח ה-API החבוי
+        client = genai.Client(api_key=API_KEY)
+        
         # שליפת רשימת המודלים מהשרת
-        models = genai.list_models()
+        models = client.models.list()
         
         # הדפסת כותרות הטבלה
-        # השתמשנו ביישור לשמאל (<) כדי שהאנגלית תסתדר טוב בקונסול
-        print(f"{'Model Code Name (For API)':<35} | {'Display Name':<25} | {'Supports Text? (generateContent)'}")
-        print("-" * 90)
+        print(f"{'Model Code Name':<35} | {'Display Name':<25}")
+        print("-" * 65)
         
         count = 0
-        text_models_count = 0
         
         for m in models:
-            # בדיקה אילו פעולות המודל תומך (חלקם מיועדים רק ל-Embeddings ולא ליצירת טקסט)
-            supports_text = "generateContent" in m.supported_generation_methods
-            
-            if supports_text:
-                status = "✅ Yes"
-                text_models_count += 1
-            else:
-                status = "❌ No (Embeddings/Other)"
-                
-            # חיתוך המילה 'models/' מהשם כדי שיהיה קל יותר להעתיק לקוד שלנו
-            clean_name = m.name.replace("models/", "")
+            # ניקוי השם להצגה נוחה יותר
+            clean_name = m.name.replace("models/", "") if m.name else "Unknown"
+            display_name = m.display_name if m.display_name else "N/A"
             
             # הדפסת שורת המודל
-            print(f"{clean_name:<35} | {m.display_name:<25} | {status}")
+            print(f"{clean_name:<35} | {display_name:<25}")
             count += 1
             
-        print("-" * 90)
+        print("-" * 65)
         print(f"📊 סה\"כ מודלים בחשבון: {count}")
-        print(f"📝 מתוכם מודלים ליצירת טקסט/OSINT שניתן להשתמש בהם: {text_models_count}")
-        print("\n💡 טיפ: העתק את השם מהעמודה השמאלית (Model Code Name) כדי להשתמש בו בקוד שלך.")
+        print("\n💡 טיפ: העתק את השם מהעמודה השמאלית (Model Code Name) כדי להשתמש בו בקוד ה-OSINT שלך.")
         
     except Exception as e:
-        print(f"\n❌ שגיאה בשליפת המודלים. ודא שמפתח ה-API תקין.")
+        print(f"\n❌ שגיאה בשליפת המודלים.")
         print(f"פרטי השגיאה: {e}")
 
 if __name__ == "__main__":
