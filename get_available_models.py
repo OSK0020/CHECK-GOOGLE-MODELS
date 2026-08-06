@@ -155,18 +155,14 @@ def test_my_models_with_tools():
         client = genai.Client(api_key=API_KEY)
         models = client.models.list()
         
-        # Filter models to test: focus on text models and exclude non-text embeddings/audio models
+        # Retrieve all models dynamically returned by Google AI Studio API
         target_models = []
-        skip_keywords = ["embedding", "imagen", "aqa", "bison", "chirp", "gecko"]
-        
         for m in models:
             clean_name = m.name.replace("models/", "") if m.name else "Unknown"
             
-            # Skip non-generation methods or embedding/image/audio model prefixes
+            # Check if the model supports content generation method
             methods = getattr(m, 'supported_generation_methods', [])
             if methods and 'generateContent' not in methods:
-                continue
-            if any(kw in clean_name.lower() for kw in skip_keywords):
                 continue
                 
             target_models.append(clean_name)
