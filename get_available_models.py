@@ -93,50 +93,63 @@ def save_github_step_summary(working_models, all_results):
         print(f"⚠️ Could not write to GITHUB_STEP_SUMMARY: {e}", flush=True)
 
 def test_single_model(client, clean_name):
-    """Worker function to test a single model for Search Grounding capability."""
+    """Worker function to test a single model for Search Grounding capability, with 429 retry logic."""
     status = ""
     is_working = False
-    try:
-        search_tool = types.Tool(google_search=types.GoogleSearch()) if hasattr(types, "GoogleSearch") else {"google_search": {}}
-        response = client.models.generate_content(
-            model=clean_name,
-            contents="What is the current main news headline? Reply in 3 words.",
-            config=types.GenerateContentConfig(
-                tools=[search_tool]
+    search_tool = types.Tool(google_search=types.GoogleSearch()) if hasattr(types, "GoogleSearch") else {"google_search": {}}
+    
+    # First attempt
+    for attempt in range(2):
+        try:
+            response = client.models.generate_content(
+                model=clean_name,
+                contents="What is the current main news headline? Reply in 3 words.",
+                config=types.GenerateContentConfig(
+                    tools=[search_tool]
+                )
             )
-        )
-        status = "✅ Open & Working (Web Search Enabled)!"
-        is_working = True
-    except APIError as api_err:
-        error_str = str(api_err).lower()
-        if "403" in error_str or "permission denied" in error_str:
-            status = "❌ Access Denied / Requires Paid Billing (403 Forbidden)"
-        elif "429" in error_str or "quota" in error_str:
-            status = "⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit)"
-        elif "404" in error_str or "not found" in error_str:
-            if any(k in clean_name.lower() for k in ["imagen", "veo", "embedding", "audio", "robotics", "aqa", "translate", "live"]):
-                status = "❌ Specialized Model (Image/Video/Audio/Embedding — Not a Text Search Model)"
+            status = "✅ Open & Working (Web Search Enabled)!"
+            is_working = True
+            break
+        except APIError as api_err:
+            error_str = str(api_err).lower()
+            if ("429" in error_str or "quota" in error_str) and attempt == 0:
+                # Temporary burst rate limit detected — pause for 2.5s and retry once
+                time.sleep(2.5)
+                continue
+            elif "403" in error_str or "permission denied" in error_str:
+                status = "❌ Access Denied / Requires Paid Billing (403 Forbidden)"
+            elif "429" in error_str or "quota" in error_str:
+                status = "⚠️ Free Tier Rate Limit Exceeded (429 Quota — Retry Later)"
+            elif "404" in error_str or "not found" in error_str:
+                if any(k in clean_name.lower() for k in ["imagen", "veo", "embedding", "audio", "robotics", "aqa", "translate", "live"]):
+                    status = "❌ Specialized Model (Image/Video/Audio/Embedding — Not a Text Search Model)"
+                else:
+                    status = "❌ Model Endpoint Not Found / Deprecated (404 Not Found)"
+            elif "not supported" in error_str or "tool" in error_str:
+                status = "❌ Open for Text Generation Only (Web Search Not Supported)"
             else:
-                status = "❌ Model Endpoint Not Found / Deprecated (404 Not Found)"
-        elif "not supported" in error_str or "tool" in error_str:
-            status = "❌ Open for Text Generation Only (Web Search Not Supported)"
-        else:
-            status = f"❌ API Error ({api_err})"
-    except Exception as e:
-        error_str = str(e).lower()
-        if "403" in error_str or "permission denied" in error_str:
-            status = "❌ Access Denied / Requires Paid Billing (403 Forbidden)"
-        elif "429" in error_str or "quota" in error_str:
-            status = "⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit)"
-        elif "404" in error_str or "not found" in error_str:
-            if any(k in clean_name.lower() for k in ["imagen", "veo", "embedding", "audio", "robotics", "aqa", "translate", "live"]):
-                status = "❌ Specialized Model (Image/Video/Audio/Embedding — Not a Text Search Model)"
+                status = f"❌ API Error ({api_err})"
+            break
+        except Exception as e:
+            error_str = str(e).lower()
+            if ("429" in error_str or "quota" in error_str) and attempt == 0:
+                time.sleep(2.5)
+                continue
+            elif "403" in error_str or "permission denied" in error_str:
+                status = "❌ Access Denied / Requires Paid Billing (403 Forbidden)"
+            elif "429" in error_str or "quota" in error_str:
+                status = "⚠️ Free Tier Rate Limit Exceeded (429 Quota — Retry Later)"
+            elif "404" in error_str or "not found" in error_str:
+                if any(k in clean_name.lower() for k in ["imagen", "veo", "embedding", "audio", "robotics", "aqa", "translate", "live"]):
+                    status = "❌ Specialized Model (Image/Video/Audio/Embedding — Not a Text Search Model)"
+                else:
+                    status = "❌ Model Endpoint Not Found / Deprecated (404 Not Found)"
+            elif "not supported" in error_str or "tool" in error_str:
+                status = "❌ Open for Text Generation Only (Web Search Not Supported)"
             else:
-                status = "❌ Model Endpoint Not Found / Deprecated (404 Not Found)"
-        elif "not supported" in error_str or "tool" in error_str:
-            status = "❌ Open for Text Generation Only (Web Search Not Supported)"
-        else:
-            status = "❌ General Error (Model under maintenance or updating)"
+                status = "❌ General Error (Model under maintenance or updating)"
+            break
 
     return {
         "model": clean_name,
