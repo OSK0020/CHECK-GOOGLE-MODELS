@@ -82,6 +82,13 @@ def save_github_step_summary(working_models, all_results):
                 f.write("\n### 💡 Recommended Models for OSINT / Live Search:\n")
                 for wm in working_models:
                     f.write(f"- `{wm}`\n")
+
+            f.write("\n---\n\n")
+            f.write("### 📖 Status & Pricing Guide (Google AI Studio Specs)\n\n")
+            f.write("- **✅ Open & Working (Web Search Enabled)**: Model is active and accessible on your account (including Free Tier).\n")
+            f.write("- **⚠️ Free Tier Rate Limit Exceeded (429 Rate Limit)**: Model is accessible, but hit Free Tier quota limits (e.g. 15 RPM). Retry later or upgrade to Pay-as-you-go.\n")
+            f.write("- **❌ Access Denied / Requires Paid Billing (403 Forbidden)**: Model requires linking an active Google Cloud Billing Account (Pay-as-you-go).\n")
+            f.write("- **❌ Specialized Model (Image/Video/Audio/Embedding)**: Non-text endpoint models (Imagen, Veo, Embeddings) requiring specific API methods (`generate_images`, `embed_content`).\n")
     except Exception as e:
         print(f"⚠️ Could not write to GITHUB_STEP_SUMMARY: {e}", flush=True)
 
@@ -231,6 +238,14 @@ def test_my_models_with_tools():
             f.write("| :--- | :--- |\n")
             for item in all_results:
                 f.write(f"| `{item['model']}` | {item['status']} |\n")
+
+            f.write("\n---\n\n")
+            f.write("### 📖 Status & Pricing Guide (Google AI Studio Official Specs)\n\n")
+            f.write("- **✅ Open & Working (Web Search Enabled)**: Model is active and accessible on your account (including Free Tier).\n")
+            f.write("- **⚠️ Free Tier Rate Limit Exceeded (429 Rate Limit)**: Model is accessible, but hit Free Tier quota limits (e.g. 15 RPM). Retry later or upgrade to Pay-as-you-go.\n")
+            f.write("- **❌ Access Denied / Requires Paid Billing (403 Forbidden)**: Model requires linking an active Google Cloud Billing Account (Pay-as-you-go).\n")
+            f.write("- **❌ Specialized Model (Image/Video/Audio/Embedding)**: Non-text endpoint models (Imagen, Veo, Embeddings) requiring specific API methods (`generate_images`, `embed_content`).\n")
+
         print("📝 Formatted Markdown report saved to 'models_report.md'.", flush=True)
 
         # Save to GitHub Step Summary if running in CI/CD pipeline
