@@ -1,6 +1,6 @@
 name: Run Gemini Models Check
 
-# הפקודה הזו מייצרת את כפתור ההרצה הידנית בממשק של גיטהאב
+# Enables the 1-click manual run button in the GitHub UI
 on:
   workflow_dispatch:
 
@@ -9,23 +9,20 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Checkout code
+      - name: Checkout repository code
         uses: actions/checkout@v4
         
-      - name: Set up Python
+      - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
-          # עודכן לגרסה 3.11 בהתאם לדרישות החדשות של גוגל
           python-version: '3.11'
           
       - name: Install dependencies
-        # קורא לקובץ ה-requirements כדי להתקין ספריות
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           
-      - name: Run Models Script
-        # כאן אנחנו מושכים את "הסוד" מהכספת של גיטהאב ומעבירים אותו לקוד
+      - name: Run Models Check Script
         env:
           GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
         run: python get_available_models.py

@@ -1,6 +1,8 @@
-# סקריפט לבדיקת הרשאות בפועל לכל המודלים ב-Google AI Studio
-# הקוד מציג את הרשימה, מפעיל את כלי ה-Search Grounding,
-# ומייצר דוח JSON וסיכום GitHub Step Summary במידה ורץ בענן.
+# Script for checking real-time permissions, free/paid status, and Search Grounding
+# capabilities for all models in Google AI Studio.
+#
+# Generates structured console output, 'models_report.json', 'models_report.md',
+# and GitHub Step Summary when executed in CI/CD pipelines.
 
 import sys
 import subprocess
@@ -8,7 +10,7 @@ import os
 import time
 import json
 
-# הגדרת קידוד UTF-8 עבור stdout ו-stderr למניעת UnicodeEncodeError בסביבת Windows
+# Reconfigure stdout/stderr encoding to UTF-8 to prevent Windows console encoding crashes
 if sys.stdout and hasattr(sys.stdout, 'reconfigure'):
     try:
         sys.stdout.reconfigure(encoding='utf-8')
@@ -20,7 +22,7 @@ if sys.stderr and hasattr(sys.stderr, 'reconfigure'):
     except Exception:
         pass
 
-# 1. פונקציה להתקנת הספריות הדרושות
+# 1. Automatic dependency checker & installer
 def install_requirements():
     missing = []
     try:
@@ -33,13 +35,13 @@ def install_requirements():
         missing.append("python-dotenv")
 
     if missing:
-        print(f"מתקין את הספריות החסרות: {', '.join(missing)}...")
+        print(f"Installing missing dependencies: {', '.join(missing)}...")
         subprocess.check_call([sys.executable, "-m", "pip", "install"] + missing + ["-q"])
-        print("ההתקנה הושלמה!\n")
+        print("Installation complete!\n")
 
 install_requirements()
 
-# טעינת משתני סביבה מקובץ .env מקומי (אם קיים)
+# Load environment variables from local .env file if present
 try:
     import dotenv
     dotenv.load_dotenv()
@@ -49,28 +51,28 @@ except Exception:
 from google import genai
 from google.genai import types
 
-# ייבוא מחלקת השגיאות מתוך SDK במידה וקיימת
+# Import API error class if available from SDK
 try:
     from google.genai.errors import APIError
 except ImportError:
     APIError = Exception
 
 # ==========================================
-# 2. משיכת ה-API Key מתוך משתני הסביבה
+# 2. Retrieve API Key from environment
 API_KEY = os.environ.get("GEMINI_API_KEY")
 # ==========================================
 
 def save_github_step_summary(working_models, all_results):
-    """כותב סיכום מעוצב בפורמט Markdown ל-GitHub Step Summary בעת הרצה ב-GitHub Actions"""
+    """Writes a formatted Markdown summary table to GITHUB_STEP_SUMMARY when running in GitHub Actions."""
     summary_file = os.environ.get("GITHUB_STEP_SUMMARY")
     if not summary_file:
         return
 
     try:
         with open(summary_file, "a", encoding="utf-8") as f:
-            f.write("## 📊 Gemini Models & Search Grounding Status\n\n")
-            f.write(f"**Total working models with web search:** {len(working_models)}\n\n")
-            f.write("| Model Code Name | Access Status |\n")
+            f.write("## 📊 Gemini Models & Search Grounding Status Report\n\n")
+            f.write(f"**Total Working Models (Web Search Enabled):** {len(working_models)}\n\n")
+            f.write("| Model Code Name | Actual Access Status (with Search) |\n")
             f.write("| :--- | :--- |\n")
             for item in all_results:
                 f.write(f"| `{item['model']}` | {item['status']} |\n")
@@ -80,18 +82,19 @@ def save_github_step_summary(working_models, all_results):
                 for wm in working_models:
                     f.write(f"- `{wm}`\n")
     except Exception as e:
-        print(f"⚠️ לא ניתן היה לכתוב ל-GITHUB_STEP_SUMMARY: {e}")
+        print(f"⚠️ Could not write to GITHUB_STEP_SUMMARY: {e}")
 
 def test_my_models_with_tools():
     """
-    מתחבר ל-API, שולף את הרשימה, ומנסה לשלוח שאלה עדכנית לכל מודל
-    *תוך הפעלת כלי החיפוש (Google Search)*, כדי לגלות איזה מודל נתמך במלואו.
+    Connects to Google AI Studio API, lists all available models, and actively tests
+    each text model with the Google Search Grounding tool enabled to verify actual permissions.
     """
     if not API_KEY:
-        print("❌ שגיאה: לא נמצא מפתח API. יש לוודא שהמשתנה GEMINI_API_KEY מוגדר ב-env/GitHub Secrets.")
+        print("❌ Error: GEMINI_API_KEY environment variable not found.")
+        print("   Please set GEMINI_API_KEY in your .env file or GitHub Secrets.")
         return
 
-    print("🔍 מתחבר לשרתי Google AI Studio...")
+    print("🔍 Connecting to Google AI Studio servers...")
     
     report_data = {
         "timestamp": time.strftime("%Y-%m-%d %H:%M:%S"),
@@ -105,10 +108,10 @@ def test_my_models_with_tools():
         client = genai.Client(api_key=API_KEY)
         models = client.models.list()
         
-        print("📥 שולף את הרשימה ומתחיל סבב בדיקות עם כלי החיפוש (Search Grounding)...\n")
+        print("📥 Retrieving models list and testing Search Grounding capabilities...\n")
         
-        print(f"{'Model Code Name':<35} | {'Actual Access Status (with Search)':<40}")
-        print("-" * 78)
+        print(f"{'Model Code Name':<35} | {'Actual Access Status (with Search)':<45}")
+        print("-" * 83)
         
         working_models = []
         all_results = []
@@ -116,7 +119,7 @@ def test_my_models_with_tools():
         for m in models:
             clean_name = m.name.replace("models/", "") if m.name else "Unknown"
             
-            # בדיקה מקדימה: האם המודל מיועד בכלל ליצירת תוכן (טקסט)
+            # Filter: Check if the model supports text content generation
             methods = getattr(m, 'supported_generation_methods', [])
             if methods and 'generateContent' not in methods:
                 continue
@@ -125,7 +128,7 @@ def test_my_models_with_tools():
             is_working = False
             
             try:
-                # הפעלת כלי החיפוש מול המודל עם האובייקטים המוקלדים של SDK גוגל
+                # Configure Google Search tool using official typed SDK objects
                 search_tool = types.Tool(google_search=types.GoogleSearch()) if hasattr(types, "GoogleSearch") else {"google_search": {}}
                 response = client.models.generate_content(
                     model=clean_name,
@@ -134,54 +137,54 @@ def test_my_models_with_tools():
                         tools=[search_tool]
                     )
                 )
-                status = "✅ פתוח ועובד בחשבון (כולל חיפוש ברשת)!"
+                status = "✅ Open & Working (Web Search Enabled)!"
                 working_models.append(clean_name)
                 is_working = True
                 
             except APIError as api_err:
                 error_str = str(api_err).lower()
                 if "403" in error_str or "permission denied" in error_str:
-                    status = "❌ חסום / מיועד למנוי בתשלום (403 Forbidden)"
+                    status = "❌ Access Denied / Requires Paid Billing (403 Forbidden)"
                 elif "429" in error_str or "quota" in error_str:
-                    status = "⚠️ חריגת מכסה חינמית / עומס בקשות (429 Rate Limit)"
+                    status = "⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit)"
                 elif "404" in error_str or "not found" in error_str:
-                    status = "❌ לא קיים או הוסר מ-AI Studio (404 Not Found)"
+                    status = "❌ Model Removed or Not Found (404 Not Found)"
                 elif "not supported" in error_str or "tool" in error_str:
-                    status = "❌ פתוח לטקסט בלבד (ללא תמיכה בחיפוש ברשת)"
+                    status = "❌ Open for Text Generation Only (Web Search Not Supported)"
                 else:
-                    status = f"❌ שגיאת API ({api_err})"
+                    status = f"❌ API Error ({api_err})"
             except Exception as e:
                 error_str = str(e).lower()
                 if "403" in error_str or "permission denied" in error_str:
-                    status = "❌ חסום / מיועד למנוי בתשלום (403 Forbidden)"
+                    status = "❌ Access Denied / Requires Paid Billing (403 Forbidden)"
                 elif "429" in error_str or "quota" in error_str:
-                    status = "⚠️ חריגת מכסה חינמית / עומס בקשות (429 Rate Limit)"
+                    status = "⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit)"
                 elif "404" in error_str or "not found" in error_str:
-                    status = "❌ לא קיים או הוסר מ-AI Studio (404 Not Found)"
+                    status = "❌ Model Removed or Not Found (404 Not Found)"
                 elif "not supported" in error_str or "tool" in error_str:
-                    status = "❌ פתוח לטקסט בלבד (ללא תמיכה בחיפוש ברשת)"
+                    status = "❌ Open for Text Generation Only (Web Search Not Supported)"
                 else:
-                    status = "❌ שגיאה כללית (אולי המודל בלמידה/עדכון)"
+                    status = "❌ General Error (Model under maintenance or updating)"
 
-            print(f"{clean_name:<35} | {status:<40}")
+            print(f"{clean_name:<35} | {status:<45}")
             all_results.append({
                 "model": clean_name,
                 "status": status,
                 "is_working": is_working
             })
             
-            # השהייה למניעת חריגת Rate Limit
+            # Delay to avoid API rate limit restrictions
             time.sleep(2)
             
-        print("-" * 78)
-        print(f"📊 סה\"כ מודלים שנבדקו והצליחו לחפש ברשת: {len(working_models)}")
+        print("-" * 83)
+        print(f"📊 Total models tested with Web Search support: {len(working_models)}")
         
         if working_models:
-            print("\n💡 אלו המודלים המומלצים לעבודה עם כלי ה-OSINT (תומכים בחיפוש חופשי):")
+            print("\n💡 Recommended models for OSINT / Live Search tasks:")
             for wm in working_models:
                 print(f"  - {wm}")
 
-        # שמירת דוח JSON
+        # Save structured JSON report
         report_data["working_models_count"] = len(working_models)
         report_data["total_tested"] = len(all_results)
         report_data["working_models"] = working_models
@@ -189,34 +192,34 @@ def test_my_models_with_tools():
         
         with open("models_report.json", "w", encoding="utf-8") as f:
             json.dump(report_data, f, indent=2, ensure_ascii=False)
-        print("\n💾 דוח תוצאות מובנה נשמר בהצלחה לקובץ `models_report.json`.")
+        print("\n💾 Structured JSON report saved to 'models_report.json'.")
 
-        # שמירת דוח Markdown מעוצב וקריא
+        # Save clean formatted Markdown report
         with open("models_report.md", "w", encoding="utf-8") as f:
-            f.write("# 📊 דוח סריקת מודלים ב-Google AI Studio\n\n")
-            f.write(f"**תאריך סריקה:** {report_data['timestamp']}\n\n")
-            f.write(f"- **סה\"כ מודלים שנבדקו:** {len(all_results)}\n")
-            f.write(f"- **סה\"כ מודלים פתוחים עם חיפוש ברשת (Search Grounding):** {len(working_models)}\n\n")
+            f.write("# 📊 Google AI Studio Models Scan Report\n\n")
+            f.write(f"**Scan Date & Time:** {report_data['timestamp']}\n\n")
+            f.write(f"- **Total Models Tested:** {len(all_results)}\n")
+            f.write(f"- **Total Open Models with Web Search (Search Grounding):** {len(working_models)}\n\n")
             
             if working_models:
-                f.write("### 💡 מודלים מומלצים לעבודה (OSINT / Search Enabled):\n")
+                f.write("### 💡 Recommended Models (OSINT / Web Search Enabled):\n")
                 for wm in working_models:
                     f.write(f"- `{wm}`\n")
                 f.write("\n")
                 
-            f.write("### 📋 פירוט סטטוס נגישות לכל המודלים:\n\n")
+            f.write("### 📋 Access Status & Permissions Details:\n\n")
             f.write("| Model Code Name | Actual Access Status (with Search) |\n")
             f.write("| :--- | :--- |\n")
             for item in all_results:
                 f.write(f"| `{item['model']}` | {item['status']} |\n")
-        print("📝 דוח מעוצב בפורמט Markdown נשמר בהצלחה לקובץ `models_report.md`.")
+        print("📝 Formatted Markdown report saved to 'models_report.md'.")
 
-        # שמירה ל-GitHub Step Summary במידה והורץ בענן
+        # Save to GitHub Step Summary if running in CI/CD pipeline
         save_github_step_summary(working_models, all_results)
         
     except Exception as e:
-        print(f"\n❌ שגיאה בתהליך הבדיקה מול שרתי גוגל.")
-        print(f"פרטי השגיאה: {e}")
+        print(f"\n❌ Error during model scanning process.")
+        print(f"Error Details: {e}")
 
 if __name__ == "__main__":
     test_my_models_with_tools()

@@ -1,5 +1,5 @@
 # 🤖 CHECK-GOOGLE-MODELS
-> **סורק מודלים אקטיבי עבור Google AI Studio — בדיקה בלחיצת כפתור של הרשאות, עלויות ותמיכה בחיפוש בזמן אמת (Search Grounding).**
+> **Active Model Scanner for Google AI Studio — 1-Click test for permissions, free/paid status, quotas, and real-time Web Search Grounding.**
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Google GenAI SDK](https://img.shields.io/badge/SDK-google--genai-green.svg)](https://pypi.org/project/google-genai/)
@@ -8,105 +8,105 @@
 
 ---
 
-## 📖 הסיפור מאחורי הפרויקט — למה בניתי את זה?
+## 📖 The Story — Why I Built This?
 
-כשהתחלתי לבנות בוטים ואוטומציות חכמות, רציתי להעניק להם **"מוח"** חזק שיוכל גם לחפש מידע עדכני ברשת בזמן אמת. 
+When I started building AI bots and automation workflows, I wanted to give them a **smart "brain"** capable of searching for up-to-date real-time information on the web.
 
-אבל כשנכנסתי ל-**Google AI Studio**, הלכתי לאיבוד:
-* ❓ אילו מודלים באמת פתוחים ונגישים בחשבון שלי?
-* 💰 מה פתוח בחינם (Free Tier) ומה דורש מנוי בתשלום (Billing / 403 Forbidden)?
-* ⚠️ אילו מודלים מוגבלים בגלל חריגת מכסה (Rate Limit / 429 Quota)?
-* 🌐 ואולי הכי חשוב — **איזה מודל באמת תומך בחיפוש חופשי ברשת (Search Grounding)?**
+However, when I accessed **Google AI Studio**, I felt completely overwhelmed:
+* ❓ Which models are actually open and accessible in my account?
+* 💰 What is available for free (Free Tier) vs. what requires a paid billing account (`403 Forbidden`)?
+* ⚠️ Which models are constrained due to rate limits or quota caps (`429 Rate Limit`)?
+* 🌐 And most importantly — **Which model actually supports live Google Search Grounding?**
 
-רשימת המודלים הרשמית של גוגל מציגה מטא-דאטה יבשה, אך אינה מגלה מה עובד בפועל בחשבון הספציפי שלך. 
-לכן בניתי את הפרויקט הזה: **הרצה יחידה בלחיצת כפתור**, המבוססת על מפתח API יחיד, שסורקת אקטיבית את כל המודלים ומפיקה דוח מפורט וברור!
-
----
-
-## 🌟 תכונות מרכזיות
-
-* ⚡ **הרצה אקטיבית (Search Grounding Test)**: הקוד אינו מסתפק ברשימה יבשה, אלא שולח בקשת אמת מול כל מודל יחד עם כלי החיפוש ברשת של גוגל (`types.Tool(google_search=types.GoogleSearch())`).
-* 📊 **סיווג הרשאות ועלויות ברור**:
-  * ✅ `פתוח ועובד בחשבון`: מודל נגיש ופעיל לשימוש (כולל במסלול החינמי).
-  * ⚠️ `חריגת מכסה חינמית (429 Rate Limit)`: מודל זמין בחשבון שכרגע חרג ממגבלת הבקשות החינמית.
-  * ❌ `חסום / מיועד למנוי בתשלום (403 Forbidden)`: מודל שחסום בחשבון חינמי ודורש הגדרת Billing.
-  * ❌ `פתוח לטקסט בלבד`: מודל שיוצר טקסט אך אינו תומך בכלי ה-Search Grounding.
-* 📝 **ייצוא דוחות אוטומטי במגוון פורמטים**:
-  * **`models_report.md`**: דוח קריא ומעוצב ב-Markdown.
-  * **`models_report.json`**: דוח מובנה לעיבוד בסקריפטים ומערכות אחרות.
-  * **`GITHUB_STEP_SUMMARY`**: הצגת דוח ויזואלי בלשונית הסיכום ב-GitHub Actions.
-* 🛡️ **תמיכה מלאה ב-Windows**: מנגנון Reconfigure UTF-8 מובנה המונע קריסות `UnicodeEncodeError`.
+Google's official models list displays dry metadata, but it doesn't reveal what actually works for your specific account. 
+That's why I created this repository: **a single 1-click execution script**, requiring only a single API Key, that actively scans all models and generates a comprehensive, beautiful report!
 
 ---
 
-## 🚀 איך מריצים? (Quick Start)
+## 🌟 Key Features
 
-### אפשרות 1: הרצה בלחיצת כפתור ב-GitHub (ללא התקנות!)
-
-1. בצע Fork למאגר זה או העלה אותו לחשבון ה-GitHub שלך.
-2. הגדר את מפתח ה-API שלך ב-GitHub Secrets:
-   - היכנס ל-**Settings** -> **Secrets and variables** -> **Actions**.
-   - לחץ על **New repository secret**.
-   - שם הסוד: `GEMINI_API_KEY`, והזן את המפתח מ-Google AI Studio.
-3. היכנס בלשונית **Actions** -> בחר ב-**Run Gemini Models Check** -> לחץ על **Run workflow**.
-4. בסיום ההרצה תוכל לצפות בטבלה המעוצבת ישירות בדף הסיכום (Summary) ולהוריד את קובצי הדוחות כ-Artifact!
+* ⚡ **Active Grounding Test**: Sends an actual test request to every text model with Google Search Grounding enabled (`types.Tool(google_search=types.GoogleSearch())`).
+* 📊 **Clear Access & Cost Classification**:
+  * ✅ `Open & Working (Web Search Enabled)`: Model is accessible and ready to use (including Free Tier).
+  * ⚠️ `Free Tier Rate Limit / Quota Exceeded (429 Rate Limit)`: Model exists but currently hit request limits.
+  * ❌ `Access Denied / Requires Paid Billing (403 Forbidden)`: Restricted on free accounts; requires paid billing.
+  * ❌ `Open for Text Generation Only`: Model generates text but does not support Web Search Grounding.
+* 📝 **Multi-Format Report Generation**:
+  * **`models_report.md`**: Clean, human-readable Markdown report.
+  * **`models_report.json`**: Structured JSON data for programmatic pipelines.
+  * **`GITHUB_STEP_SUMMARY`**: Visual summary rendered directly in GitHub Actions.
+* 🛡️ **Cross-Platform & Windows Safe**: Built-in UTF-8 stream reconfiguration prevents `UnicodeEncodeError` crashes on Windows consoles.
 
 ---
 
-### אפשרות 2: הרצה מקומית במחשב (Local Run)
+## 🚀 Quick Start
 
-1. **שכפול המאגר**:
+### Option 1: 1-Click Execution on GitHub (No Installation Required!)
+
+1. Fork or upload this repository to your GitHub account.
+2. Add your API Key to **GitHub Secrets**:
+   - Go to **Settings** -> **Secrets and variables** -> **Actions**.
+   - Click **New repository secret**.
+   - Name: `GEMINI_API_KEY`, Secret: Your Google AI Studio API Key.
+3. Navigate to **Actions** tab -> Select **Run Gemini Models Check** -> Click **Run workflow**.
+4. View the formatted table directly in the run Summary or download the reports as artifacts!
+
+---
+
+### Option 2: Local Execution
+
+1. **Clone the repository**:
    ```bash
    git clone https://github.com/OSK0020/CHECK-GOOGLE-MODELS.git
    cd CHECK-GOOGLE-MODELS
    ```
 
-2. **הגדרת מפתח API**:
-   צור קובץ `.env` בתיקיית הפרויקט (ניתן להעתיק מ-`.env.example`):
+2. **Configure Environment Variable**:
+   Create a `.env` file in the project root (you can copy `.env.example`):
    ```env
    GEMINI_API_KEY=your_actual_api_key_here
    ```
 
-3. **הרצת הסקריפט**:
+3. **Run the script**:
    ```bash
    python get_available_models.py
    ```
 
 ---
 
-## 📋 דוגמה לפלט הדוח (`models_report.md`)
+## 📋 Sample Output Report (`models_report.md`)
 
 ```markdown
-# 📊 דוח סריקת מודלים ב-Google AI Studio
+# 📊 Google AI Studio Models Scan Report
 
-**תאריך סריקה:** 2026-08-07 02:00:00
+**Scan Date & Time:** 2026-08-07 02:00:00
 
-- **סה"כ מודלים שנבדקו:** 15
-- **סה"כ מודלים פתוחים עם חיפוש ברשת (Search Grounding):** 4
+- **Total Models Tested:** 15
+- **Total Open Models with Web Search (Search Grounding):** 4
 
-### 💡 מודלים מומלצים לעבודה (OSINT / Search Enabled):
+### 💡 Recommended Models (OSINT / Web Search Enabled):
 - `gemini-2.5-flash`
 - `gemini-2.0-flash`
 
-### 📋 פירוט סטטוס נגישות לכל המודלים:
+### 📋 Access Status & Permissions Details:
 | Model Code Name | Actual Access Status (with Search) |
 | :--- | :--- |
-| `gemini-2.5-flash` | ✅ פתוח ועובד בחשבון (כולל חיפוש ברשת)! |
-| `gemini-1.5-pro` | ⚠️ חריגת מכסה חינמית / עומס בקשות (429 Rate Limit) |
-| `gemini-ultra-experimental` | ❌ חסום / מיועד למנוי בתשלום (403 Forbidden) |
+| `gemini-2.5-flash` | ✅ Open & Working (Web Search Enabled)! |
+| `gemini-1.5-pro` | ⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit) |
+| `gemini-ultra-experimental` | ❌ Access Denied / Requires Paid Billing (403 Forbidden) |
 ```
 
 ---
 
-## 🛠️ טכנולוגיות ותלויות
+## 🛠️ Tech Stack & Dependencies
 
 * **Python 3.11+**
-* **`google-genai`**: ספריית ה-SDK הרשמית והמעודכנת של גוגל.
-* **`python-dotenv`**: לטעינה מאובטחת של משתני סביבה.
-* **GitHub Actions**: לאוטומציה והרצה בענן.
+* **`google-genai`**: Official, updated Google Gen AI Python SDK.
+* **`python-dotenv`**: For safe local environment variable loading.
+* **GitHub Actions**: For automated CI/CD cloud execution.
 
 ---
 
-## 📜 רישיון (License)
+## 📜 License
 
-פרויקט זה מופץ תחת רישיון MIT. ראה קובץ [LICENSE](LICENSE) לפרטים נוספים.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
