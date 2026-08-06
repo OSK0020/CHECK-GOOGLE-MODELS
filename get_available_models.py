@@ -107,7 +107,10 @@ def test_single_model(client, clean_name):
         elif "429" in error_str or "quota" in error_str:
             status = "⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit)"
         elif "404" in error_str or "not found" in error_str:
-            status = "❌ Model Removed or Not Found (404 Not Found)"
+            if any(k in clean_name.lower() for k in ["imagen", "veo", "embedding", "audio", "robotics", "aqa", "translate", "live"]):
+                status = "❌ Specialized Model (Image/Video/Audio/Embedding — Not a Text Search Model)"
+            else:
+                status = "❌ Model Endpoint Not Found / Deprecated (404 Not Found)"
         elif "not supported" in error_str or "tool" in error_str:
             status = "❌ Open for Text Generation Only (Web Search Not Supported)"
         else:
@@ -119,7 +122,10 @@ def test_single_model(client, clean_name):
         elif "429" in error_str or "quota" in error_str:
             status = "⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit)"
         elif "404" in error_str or "not found" in error_str:
-            status = "❌ Model Removed or Not Found (404 Not Found)"
+            if any(k in clean_name.lower() for k in ["imagen", "veo", "embedding", "audio", "robotics", "aqa", "translate", "live"]):
+                status = "❌ Specialized Model (Image/Video/Audio/Embedding — Not a Text Search Model)"
+            else:
+                status = "❌ Model Endpoint Not Found / Deprecated (404 Not Found)"
         elif "not supported" in error_str or "tool" in error_str:
             status = "❌ Open for Text Generation Only (Web Search Not Supported)"
         else:
