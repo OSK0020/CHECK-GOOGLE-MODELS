@@ -134,34 +134,34 @@ def test_my_models_with_tools():
                         tools=[search_tool]
                     )
                 )
-                status = "✅ פתוח ועובד (כולל גישה לרשת)!"
+                status = "✅ פתוח ועובד בחשבון (כולל חיפוש ברשת)!"
                 working_models.append(clean_name)
                 is_working = True
                 
             except APIError as api_err:
                 error_str = str(api_err).lower()
                 if "403" in error_str or "permission denied" in error_str:
-                    status = "❌ חסום לחשבון שלך (403)"
+                    status = "❌ חסום / מיועד למנוי בתשלום (403 Forbidden)"
                 elif "429" in error_str or "quota" in error_str:
-                    status = "⚠️ חריגת מכסה / עומס (429)"
+                    status = "⚠️ חריגת מכסה חינמית / עומס בקשות (429 Rate Limit)"
                 elif "404" in error_str or "not found" in error_str:
-                    status = "❌ לא קיים או הוסר (404)"
+                    status = "❌ לא קיים או הוסר מ-AI Studio (404 Not Found)"
                 elif "not supported" in error_str or "tool" in error_str:
-                    status = "❌ הכלי (Search) לא נתמך במודל זה"
+                    status = "❌ פתוח לטקסט בלבד (ללא תמיכה בחיפוש ברשת)"
                 else:
                     status = f"❌ שגיאת API ({api_err})"
             except Exception as e:
                 error_str = str(e).lower()
                 if "403" in error_str or "permission denied" in error_str:
-                    status = "❌ חסום לחשבון שלך (403)"
+                    status = "❌ חסום / מיועד למנוי בתשלום (403 Forbidden)"
                 elif "429" in error_str or "quota" in error_str:
-                    status = "⚠️ חריגת מכסה / עומס (429)"
+                    status = "⚠️ חריגת מכסה חינמית / עומס בקשות (429 Rate Limit)"
                 elif "404" in error_str or "not found" in error_str:
-                    status = "❌ לא קיים או הוסר (404)"
+                    status = "❌ לא קיים או הוסר מ-AI Studio (404 Not Found)"
                 elif "not supported" in error_str or "tool" in error_str:
-                    status = "❌ הכלי (Search) לא נתמך במודל זה"
+                    status = "❌ פתוח לטקסט בלבד (ללא תמיכה בחיפוש ברשת)"
                 else:
-                    status = "❌ שגיאה (אולי המודל בעדכון)"
+                    status = "❌ שגיאה כללית (אולי המודל בלמידה/עדכון)"
 
             print(f"{clean_name:<35} | {status:<40}")
             all_results.append({
