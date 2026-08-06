@@ -1,0 +1,14 @@
+# Local environment & secrets
+.env
+
+# Python cache & artifacts
+__pycache__/
+*.pyc
+*.pyo
+models_report.json
+models_report.md
+
+# IDE / OS settings
+.vscode/
+.idea/
+.DS_Store
