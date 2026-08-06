@@ -59,8 +59,8 @@ except ImportError:
     APIError = Exception
 
 # ==========================================
-# 2. Retrieve API Key from environment
-API_KEY = os.environ.get("GEMINI_API_KEY")
+# 2. Retrieve API Key from CLI argument or environment variable
+API_KEY = sys.argv[1].strip() if len(sys.argv) > 1 and sys.argv[1].strip() else os.environ.get("GEMINI_API_KEY")
 # ==========================================
 
 def save_github_step_summary(working_models, all_results):

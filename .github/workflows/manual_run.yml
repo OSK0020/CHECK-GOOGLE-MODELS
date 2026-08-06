@@ -1,8 +1,14 @@
 name: Run Gemini Models Check
 
-# Enables the 1-click manual run button in the GitHub UI
+# Enables manual execution with optional custom API Key input or secret fallback
 on:
   workflow_dispatch:
+    inputs:
+      api_key:
+        description: 'Optional: Custom Gemini API Key (leave empty to use repository secret GEMINI_API_KEY)'
+        required: false
+        type: string
+        default: ''
 
 jobs:
   check-models:
@@ -24,7 +30,7 @@ jobs:
           
       - name: Run Models Check Script
         env:
-          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY: ${{ inputs.api_key != '' && inputs.api_key || secrets.GEMINI_API_KEY }}
           PYTHONUNBUFFERED: "1"
         run: python get_available_models.py
 

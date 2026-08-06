@@ -43,12 +43,11 @@ That's why I created this repository: **a single 1-click execution script**, req
 
 ### Option 1: 1-Click Execution on GitHub (No Installation Required!)
 
-1. Fork or upload this repository to your GitHub account.
-2. Add your API Key to **GitHub Secrets**:
-   - Go to **Settings** -> **Secrets and variables** -> **Actions**.
-   - Click **New repository secret**.
-   - Name: `GEMINI_API_KEY`, Secret: Your Google AI Studio API Key.
-3. Navigate to **Actions** tab -> Select **Run Gemini Models Check** -> Click **Run workflow**.
+1. Navigate to **Actions** tab -> Select **Run Gemini Models Check** -> Click **Run workflow**.
+2. **Choose your API Key source**:
+   - **Method A (Custom Input)**: Type your API Key directly into the `api_key` text input box.
+   - **Method B (Repository Secret)**: Leave the text box empty to automatically use your stored `GEMINI_API_KEY` repository secret.
+3. Click **Run workflow**.
 4. View the formatted table directly in the run Summary or download the reports as artifacts!
 
 ---
@@ -61,13 +60,18 @@ That's why I created this repository: **a single 1-click execution script**, req
    cd CHECK-GOOGLE-MODELS
    ```
 
-2. **Configure Environment Variable**:
-   Create a `.env` file in the project root (you can copy `.env.example`):
-   ```env
-   GEMINI_API_KEY=your_actual_api_key_here
+2. **Run with your API Key**:
+   
+   *Via CLI argument*:
+   ```bash
+   python get_available_models.py YOUR_API_KEY_HERE
    ```
 
-3. **Run the script**:
+   *Or via `.env` file*:
+   Create a `.env` file (see `.env.example`):
+   ```env
+   GEMINI_API_KEY=YOUR_API_KEY_HERE
+   ```
    ```bash
    python get_available_models.py
    ```
@@ -92,7 +96,7 @@ That's why I created this repository: **a single 1-click execution script**, req
 | Model Code Name | Actual Access Status (with Search) |
 | :--- | :--- |
 | `gemini-2.5-flash` | ✅ Open & Working (Web Search Enabled)! |
-| `gemini-1.5-pro` | ⚠️ Free Tier Rate Limit / Quota Exceeded (429 Rate Limit) |
+| `gemini-1.5-pro` | ⚠️ Free Tier Rate Limit Exceeded (429 Quota — Retry Later) |
 | `gemini-ultra-experimental` | ❌ Access Denied / Requires Paid Billing (403 Forbidden) |
 ```
 
