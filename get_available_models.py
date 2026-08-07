@@ -61,6 +61,9 @@ except ImportError:
 # ==========================================
 # 2. Retrieve API Key from CLI argument or environment variable
 API_KEY = sys.argv[1].strip() if len(sys.argv) > 1 and sys.argv[1].strip() else os.environ.get("GEMINI_API_KEY")
+# Immediately wipe raw API key from environment memory for security
+if "GEMINI_API_KEY" in os.environ:
+    del os.environ["GEMINI_API_KEY"]
 # ==========================================
 
 def save_github_step_summary(working_models, all_results):
@@ -113,6 +116,7 @@ def test_single_model(client, clean_name):
             break
         except APIError as api_err:
             error_str = str(api_err).lower()
+            clean_err = str(api_err).replace(API_KEY, "***") if API_KEY else str(api_err)
             if ("429" in error_str or "quota" in error_str) and attempt == 0:
                 # Temporary burst rate limit detected — pause for 2.5s and retry once
                 time.sleep(2.5)
@@ -129,7 +133,7 @@ def test_single_model(client, clean_name):
             elif "not supported" in error_str or "tool" in error_str:
                 status = "❌ Open for Text Generation Only (Web Search Not Supported)"
             else:
-                status = f"❌ API Error ({api_err})"
+                status = f"❌ API Error ({clean_err})"
             break
         except Exception as e:
             error_str = str(e).lower()
