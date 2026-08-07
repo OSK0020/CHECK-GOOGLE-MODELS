@@ -23,6 +23,63 @@ That's why I created this repository: **a single 1-click execution script**, req
 
 ---
 
+## 🧠 How to Make Your Bot Smart — Step-by-Step Guide
+
+### Step 1: Open a Google AI Studio Account
+1. Visit the official [Google AI Studio](https://aistudio.google.com/) portal.
+2. Sign in with your Google account (no credit card required for Free Tier access).
+
+---
+
+### Step 2: Generate Your Google AI API Key
+1. Click **"Get API key"** in the top navigation bar or left sidebar.
+2. Click **"Create API key"** (choose a project or create a new default project).
+3. Copy your newly generated API key string.
+
+---
+
+### Step 3: Connect Your API Key to This Repository
+
+Choose **ONE** of the following options to connect your API Key:
+
+#### 🟢 Option 1: Direct 1-Click Workflow Execution (Quickest)
+1. Go to the **Actions** tab in this GitHub repository.
+2. Click **Run Gemini Models Check** on the left menu.
+3. Click the **Run workflow** dropdown button on the right.
+4. Paste your API Key directly into the **`api_key`** text input box.
+5. Click **Run workflow**.
+
+> 🔒 *Security Note: Custom API Keys entered in the text box are automatically masked (`***`) in GitHub Action logs.*
+
+---
+
+#### 🔵 Option 2: Store as GitHub Repository Secret (Permanent & Recommended)
+1. In your GitHub repository, navigate to **Settings** -> **Secrets and variables** -> **Actions**.
+2. Click **New repository secret**.
+3. **Exact Secret Name Required**: Enter `GEMINI_API_KEY` (must match the code exact name!).
+4. **Secret Value**: Paste your API Key.
+5. Click **Add secret**.
+6. Now you can run the workflow anytime without re-entering your key!
+
+---
+
+#### 🟡 Option 3: Local Execution on Your Computer
+* **Via Command Line Argument**:
+  ```bash
+  python get_available_models.py YOUR_API_KEY_HERE
+  ```
+* **Via `.env` File**:
+  Create a `.env` file in the project root containing:
+  ```env
+  GEMINI_API_KEY=YOUR_API_KEY_HERE
+  ```
+  Then run:
+  ```bash
+  python get_available_models.py
+  ```
+
+---
+
 ## 🌟 Key Features
 
 * ⚡ **Active Grounding Test**: Sends an actual test request to every text model with Google Search Grounding enabled (`types.Tool(google_search=types.GoogleSearch())`).
@@ -36,45 +93,6 @@ That's why I created this repository: **a single 1-click execution script**, req
   * **`models_report.json`**: Structured JSON data for programmatic pipelines.
   * **`GITHUB_STEP_SUMMARY`**: Visual summary rendered directly in GitHub Actions.
 * 🛡️ **Cross-Platform & Windows Safe**: Built-in UTF-8 stream reconfiguration prevents `UnicodeEncodeError` crashes on Windows consoles.
-
----
-
-## 🚀 Quick Start
-
-### Option 1: 1-Click Execution on GitHub (No Installation Required!)
-
-1. Navigate to **Actions** tab -> Select **Run Gemini Models Check** -> Click **Run workflow**.
-2. **Choose your API Key source**:
-   - **Method A (Custom Input)**: Type your API Key directly into the `api_key` text input box.
-   - **Method B (Repository Secret)**: Leave the text box empty to automatically use your stored `GEMINI_API_KEY` repository secret.
-3. Click **Run workflow**.
-4. View the formatted table directly in the run Summary or download the reports as artifacts!
-
----
-
-### Option 2: Local Execution
-
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/OSK0020/CHECK-GOOGLE-MODELS.git
-   cd CHECK-GOOGLE-MODELS
-   ```
-
-2. **Run with your API Key**:
-   
-   *Via CLI argument*:
-   ```bash
-   python get_available_models.py YOUR_API_KEY_HERE
-   ```
-
-   *Or via `.env` file*:
-   Create a `.env` file (see `.env.example`):
-   ```env
-   GEMINI_API_KEY=YOUR_API_KEY_HERE
-   ```
-   ```bash
-   python get_available_models.py
-   ```
 
 ---
 
