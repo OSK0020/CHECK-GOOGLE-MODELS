@@ -3,7 +3,7 @@
 
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Google GenAI SDK](https://img.shields.io/badge/SDK-google--genai-green.svg)](https://pypi.org/project/google-genai/)
-[![GitHub Actions](https://img.shields.io/badge/CI%2FCD-GitHub%20Actions-orange.svg)](https://github.com/OSK0020/CHECK-GOOGLE-MODELS/actions)
+[![Run Workflow 1-Click](https://img.shields.io/badge/CI%2FCD-Run%20Workflow%20(1--Click)-orange.svg)](https://github.com/OSK0020/CHECK-GOOGLE-MODELS/actions/workflows/manual_run.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
@@ -43,11 +43,14 @@ That's why I created this repository: **a single 1-click execution script**, req
 Choose **ONE** of the following options to connect your API Key:
 
 #### 🟢 Option 1: Direct 1-Click Workflow Execution (Quickest)
-1. Go to the **Actions** tab in this GitHub repository.
-2. Click **Run Gemini Models Check** on the left menu.
-3. Click the **Run workflow** dropdown button on the right.
-4. Paste your API Key directly into the **`api_key`** text input box.
-5. Click **Run workflow**.
+👉 **[Click Here to Open the 1-Click Workflow Page Directly](https://github.com/OSK0020/CHECK-GOOGLE-MODELS/actions/workflows/manual_run.yml)**
+
+1. Click the **Run workflow** dropdown button on the right side of the page.
+2. **Choose your API Key source**:
+   - **Method A (Custom Input)**: Paste your API Key directly into the **`api_key`** text input box.
+   - **Method B (Repository Secret)**: Leave the text box empty to use your stored `GEMINI_API_KEY` repository secret.
+3. Click the green **Run workflow** button.
+4. View the formatted table directly in the run Summary or download the reports as artifacts!
 
 > 🔒 *Security Note: Custom API Keys entered in the text box are automatically masked (`***`) in GitHub Action logs.*
 
@@ -59,7 +62,7 @@ Choose **ONE** of the following options to connect your API Key:
 3. **Exact Secret Name Required**: Enter `GEMINI_API_KEY` (must match the code exact name!).
 4. **Secret Value**: Paste your API Key.
 5. Click **Add secret**.
-6. Now you can run the workflow anytime without re-entering your key!
+6. Now you can run the [1-Click Workflow](https://github.com/OSK0020/CHECK-GOOGLE-MODELS/actions/workflows/manual_run.yml) anytime without re-entering your key!
 
 ---
 
