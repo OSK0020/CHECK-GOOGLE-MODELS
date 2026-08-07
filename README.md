@@ -4,7 +4,6 @@
 [![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
 [![Google GenAI SDK](https://img.shields.io/badge/SDK-google--genai-green.svg)](https://pypi.org/project/google-genai/)
 [![Run Workflow 1-Click](https://img.shields.io/badge/CI%2FCD-Run%20Workflow%20(1--Click)-orange.svg)](https://github.com/OSK0020/CHECK-GOOGLE-MODELS/actions/workflows/manual_run.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 ---
 
@@ -129,9 +128,3 @@ Choose **ONE** of the following options to connect your API Key:
 * **`google-genai`**: Official, updated Google Gen AI Python SDK.
 * **`python-dotenv`**: For safe local environment variable loading.
 * **GitHub Actions**: For automated CI/CD cloud execution.
-
----
-
-## 📜 License
-
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
